@@ -3,7 +3,7 @@ import math
 
 ### Goals
 # units: embedded
-time_to_complete = '6d23hr'
+time_to_complete = '23hr15min'
 
 # units: eggs
 target_eggs = '5.0q'
@@ -44,10 +44,13 @@ def parse_time(timestr):
     if 'hr' in timestr:
         hourstr, timestr = timestr.split('hr')
         hours = int(hourstr)
+    if 'min' in timestr:
+        minutestr, timestr = timestr.split('min')
+        minutes = int(minutestr)
     if timestr:
         raise ValueError('unknown time value %s (from %s)' % (timestr, orig))
     # units: minutes
-    return days * 24 * 60 + hours * 60
+    return days * 24 * 60 + hours * 60 + minutes
 
 
 def format_time(num):
@@ -55,7 +58,10 @@ def format_time(num):
     hours, remainder = divmod(remainder, 60)
     if days:
         return '%dd%dhr' % (days, hours)
-    return '%dhr' % hours
+    minutes, remainder = divmod(remainder, 1)
+    if hours:
+        return '%dhr%dmin' % (hours, minutes)
+    return '%dmin' % minutes
 
 
 def parse_value(valstr):
