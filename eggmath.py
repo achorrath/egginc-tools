@@ -3,7 +3,7 @@ import math
 
 ### Goals
 # units: embedded
-time_to_complete = '23hr15min'
+time_to_complete = '24hr'
 
 # units: eggs
 target_eggs = '5.0q'
@@ -85,12 +85,36 @@ def parse_value(valstr):
     elif valstr.endswith('q'):
         exponent = 15
         suffix_len = 1
+    elif valstr.endswith('Q'):
+        exponent = 18
+        suffix_len = 1
+    elif valstr.endswith('s'):
+        exponent = 21
+        suffix_len = 1
+    elif valstr.endswith('S'):
+        exponent = 24
+        suffix_len = 1
+    elif valstr.endswith('o'):
+        exponent = 27
+        suffix_len = 1
     elif valstr.endswith('N'):
         exponent = 30
         suffix_len = 1
     # 'd' is at the end
+    elif valstr.endswith('U'):
+        exponent = 36
+        suffix_len = 1
+    elif valstr.endswith('D'):
+        exponent = 39
+        suffix_len = 1
+    elif valstr.endswith('Td'):
+        exponent = 42
+        suffix_len = 2
     elif valstr.endswith('qd'):
         exponent = 45
+        suffix_len = 2
+    elif valstr.endswith('Qd'):
+        exponent = 48
         suffix_len = 2
     elif valstr.endswith('sd'):
         exponent = 51
@@ -121,12 +145,30 @@ def format_value(value):
         suffix = 'q'
     if oom3 == 6:
         suffix = 'Q'
+    if oom3 == 7:
+        suffix = 's'
     if oom3 == 8:
         suffix = 'S'
+    if oom3 == 9:
+        suffix = 'o'
+    if oom3 == 10:
+        suffix = 'N'
     if oom3 == 11:
         suffix = 'd'
+    if oom3 == 12:
+        suffix = 'U'
+    if oom3 == 13:
+        suffix = 'D'
+    if oom3 == 14:
+        suffix = 'Td'
+    if oom3 == 15:
+        suffix = 'qd'
+    if oom3 == 16:
+        suffix = 'Qd'
     if oom3 == 17:
         suffix = 'sd'
+    if oom3 == 17:
+        suffix = 'Sd'
     if suffix is None:
         raise ValueError('result too large: 1000**%d' % oom3)
     return'%.3f%s' % (mantissa, suffix)
