@@ -76,7 +76,10 @@ def parse_value(valstr):
     suffix = valstr[-1]
     if suffix in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
         return int(valstr)
-    if valstr.endswith('B'):
+    if valstr.endswith('M'):
+        exponent = 6
+        suffix_len = 1
+    elif valstr.endswith('B'):
         exponent = 9
         suffix_len = 1
     elif valstr.endswith('T'):
@@ -167,7 +170,7 @@ def format_value(value):
         suffix = 'Qd'
     if oom3 == 17:
         suffix = 'sd'
-    if oom3 == 17:
+    if oom3 == 18:
         suffix = 'Sd'
     if suffix is None:
         raise ValueError('result too large: 1000**%d' % oom3)
