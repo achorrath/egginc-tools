@@ -1,5 +1,5 @@
+import numbers
 import math
-
 
 ### Goals
 # units: embedded
@@ -42,6 +42,8 @@ internal_hatchery_calm = 3
 
 ### functions
 def parse_time(timestr):
+    if isinstance(timestr, numbers.Number):
+        return timestr
     orig = timestr
     days = 0
     hours = 0
@@ -73,8 +75,11 @@ def format_time(num):
 
 
 def parse_value(valstr):
-    suffix = valstr[-1]
-    if suffix in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
+    if valstr is None:
+        return None
+    if isinstance(valstr, numbers.Number):
+        return valstr
+    if valstr[-1].isnumeric():
         return int(valstr)
     if valstr.endswith('M'):
         exponent = 6
@@ -177,46 +182,75 @@ def format_value(value):
     return'%.3f%s' % (mantissa, suffix)
 
 
-### Intermediate values
+class Farm(object):
+    def __init__(self, eggs=None, max_capacity=None, farm_value=None,
+                 farm_population=None, egg_laying_rate=None,
+                 int_hatchery_rate=None):
+        # From contract info screen
+        self.eggs = parse_value(eggs)  # units: eggs
+        
+        # From hen housing screen
+        self.max_capacity = parse_value(max_capacity)  # units: chickens
+        self.habs = 4  # units: habs
 
-# units: eggs / minute / chicken = (eggs / minute) / chickens
-egg_laying_rate_per_chicken = parse_value(egg_laying_rate) / farm_population
+        # From stats screen
+        self.farm_value = parse_value(farm_value)  # units: dollars
+        self.farm_population = parse_value(farm_population)  # units: chickens
+        self.egg_laying_rate = parse_value(egg_laying_rate)  # units: eggs / minute
+        self.int_hatchery_rate = parse_value(int_hatchery_rate)  # units: chickens / hab / minute
+        
+        # From epic research screen
+        self.internal_hatchery_calm = 3  # units: dimensionless
+        
+        # Intermediate values
+        self.chicken_hatching_rate = None
+        if self.int_hatchery_rate is not None:
+            self.chicken_hatching_rate = self.int_hatchery_rate * self.habs * self.internal_hatchery_calm
+        self.egg_laying_rate_per_chicken = None
+        if self.egg_laying_rate is not None and self.farm_population is not None:
+            self.egg_laying_rate_per_chicken = self.egg_laying_rate / self.farm_population
+        self.egg_laying_acceleration = None
+        if self.chicken_hatching_rate is not None and self.egg_laying_rate_per_chicken is not None:
+            self.egg_laying_acceleration = self.chicken_hatching_rate * self.egg_laying_rate_per_chicken
+        self.value_scalar = None
+        if self.farm_value is not None and self.max_capacity is not None and self.farm_population is not None and self.int_hatchery_rate is not None:
+            self.value_scalar = self.farm_value / (self.max_capacity + 9 * self.farm_population + 12000 * self.int_hatchery_rate)
 
-# units: chickens / minute = (chickens / minute / hab) * habs * dimensionless
-chicken_hatching_rate = int_hatchery_rate * habs * internal_hatchery_calm
+    def future(self, t):
+        minutes = parse_time(t)
+        kwargs = {}
+        if self.eggs is not None and self.egg_laying_rate is not None and self.egg_laying_acceleration is not None:
+            kwargs['eggs'] = self.eggs + self.egg_laying_rate * minutes + 0.5 * self.egg_laying_acceleration * minutes * minutes
+        if self.max_capacity is not None:
+            kwargs['max_capacity'] = self.max_capacity
+        if self.farm_population is not None and self.chicken_hatching_rate is not None:
+            kwargs['farm_population'] = self.farm_population + self.chicken_hatching_rate * minutes
+        if self.farm_population is not None and self.chicken_hatching_rate is not None:
+            kwargs['int_hatchery_rate'] = self.int_hatchery_rate
+        if 'farm_population' in kwargs and self.egg_laying_rate_per_chicken is not None:
+            kwargs['egg_laying_rate'] = kwargs['farm_population'] * self.egg_laying_rate_per_chicken
+        if 'max_capacity' in kwargs and 'farm_population' in kwargs and 'int_hatchery_rate' in kwargs:
+            kwargs['farm_value'] = self.value_scalar * (kwargs['max_capacity'] + 9 * kwargs['farm_population'] + 12000 * kwargs['int_hatchery_rate'])
+        return Farm(**kwargs)
+
+    def report(self):
+        if self.eggs is not None:
+            print('eggs:', format_value(self.eggs))
+        if self.farm_population is not None:
+            print('farm population:', format_value(self.farm_population))
+            if self.max_capacity and self.farm_population > self.max_capacity:
+                print('WARNING: farm population limited to %s by hab capacity' % format_value(self.max_capacity))
+        if self.egg_laying_rate is not None:
+            print('egg laying rate:', format_value(self.egg_laying_rate))
+        if self.farm_value is not None:
+            print('farm value:', format_value(self.farm_value))
 
 
 ### Values at completion time
 print('Stats at completion time')
-# units: eggs
-e_current = parse_value(eggs)
-
-# units: eggs / minute
-e_velocity = parse_value(egg_laying_rate)
-
-# units: eggs / minute / minute = (chickens / minute) * (eggs / minute / chicken)
-e_acceleration = chicken_hatching_rate * egg_laying_rate_per_chicken
-
-# units: minutes
-t = parse_time(time_to_complete)
-
-# units: eggs
-e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
-print('eggs:', format_value(e_final))
-
-# units: chickens
-c_current = farm_population
-
-# units: chickens / minute
-c_velocity = chicken_hatching_rate
-
-# units: chickens
-c_final = c_current + c_velocity * t
-print('farm population:', format_value(c_final))
-
-# units: chickens / minute
-e_velocity_final = e_velocity + e_acceleration * t
-print('egg laying rate', format_value(e_velocity_final))
+myfarm = Farm(eggs=eggs, max_capacity=hab_max_capacity, farm_value=farm_value, farm_population=farm_population, egg_laying_rate=egg_laying_rate, int_hatchery_rate=int_hatchery_rate)
+new_farm = myfarm.future(time_to_complete)
+new_farm.report()
 print()
 
 
@@ -228,6 +262,9 @@ print('Stats at egg target')
 
 # units: eggs
 e_final = parse_value(target_eggs)
+e_current = myfarm.eggs
+e_velocity = myfarm.egg_laying_rate
+e_acceleration = myfarm.egg_laying_acceleration
 
 # quadratic equation
 a = 0.5 * e_acceleration
@@ -238,15 +275,9 @@ d = b**2 - 4*a*c
 # units: minutes
 t = (-b + math.sqrt(d)) / (2 * a)
 print('target reached in', format_time(t))
-print('eggs:', format_value(e_final))
 
-# units: chickens
-c_final = c_current + c_velocity * t
-print('farm population:', format_value(c_final))
-
-# units: chickens / minute
-e_velocity_final = e_velocity + e_acceleration * t
-print('egg laying rate', format_value(e_velocity_final))
+new_farm2 = myfarm.future(t)
+new_farm2.report()
 print()
 
 
@@ -257,19 +288,15 @@ print('Stats at chicken target')
 
 # units: chickens
 c_final = parse_value(target_chickens)
+c_current = myfarm.farm_population
+c_velocity = myfarm.chicken_hatching_rate
 
 # units: minutes
 t = (c_final - c_current) / c_velocity
 print('target reached in', format_time(t))
 
-# units: eggs
-e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
-print('eggs:', format_value(e_final))
-print('farm population:', format_value(c_final))
-
-# units: chickens / minute
-e_velocity_final = e_velocity + e_acceleration * t
-print('egg laying rate', format_value(e_velocity_final))
+new_farm3 = myfarm.future(t)
+new_farm3.report()
 print()
 
 
@@ -291,34 +318,19 @@ print()
 print('Stats at farm value target')
 
 # units: dollars
-v_current = parse_value(farm_value)
-
-# units: dimensionless
-value_scalar = v_current / (hab_max_capacity + 9 * farm_population + 12000 * int_hatchery_rate)
-
-# units: dollars
 v_final = parse_value(target_farm_value)
 
 # units: chickens
-c_final = (v_final / value_scalar - (hab_max_capacity + 12000 * int_hatchery_rate))/9
+c_final = (v_final / myfarm.value_scalar - (myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate))/9
 
 # units: minutes
 t = (c_final - c_current) / c_velocity
 print('target reached in', format_time(t))
+new_farm4 = myfarm.future(t)
+new_farm4.report()
 
-# units: eggs
-e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
-print('eggs:', format_value(e_final))
-print('farm population:', format_value(c_final))
 if c_final > hab_max_capacity:
-    print('warning: population exceeds hab capacity')
-    
     # units: dollars
-    v_best = (10 * hab_max_capacity + 12000 * int_hatchery_rate) * value_scalar
+    v_best = (10 * myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate) * myfarm.value_scalar
     print('         best possible farm value:', format_value(v_best))
-
-# units: chickens / minute
-e_velocity_final = e_velocity + e_acceleration * t
-print('egg laying rate', format_value(e_velocity_final))
-print()
-
+    
