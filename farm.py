@@ -206,3 +206,22 @@ class Farm(object):
         if self.farm_value is not None:
             print('farm value:', format_value(self.farm_value))
 
+    def time_to_eggs(self, target):
+        # solve for t
+        # e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
+        # 0.5 * e_acceleration * t * t + e_velocity * t + e_current - e_final = 0
+        e_final = parse_value(target)
+        e_current = self.eggs
+        e_velocity = self.egg_laying_rate
+        e_acceleration = self.egg_laying_acceleration
+
+        # quadratic equation
+        a = 0.5 * e_acceleration
+        b = e_velocity
+        c = e_current - e_final
+        d = b**2 - 4*a*c
+
+        # units: minutes
+        t = (-b + math.sqrt(d)) / (2 * a)
+        return t
+

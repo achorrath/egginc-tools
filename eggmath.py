@@ -50,25 +50,11 @@ print()
 
 
 ### Values at egg target
-# solve for t
-# e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
-# 0.5 * e_acceleration * t * t + e_velocity * t + e_current - e_final = 0
 print('Stats at egg target')
 
 # units: eggs
 e_final = farm.parse_value(target_eggs)
-e_current = myfarm.eggs
-e_velocity = myfarm.egg_laying_rate
-e_acceleration = myfarm.egg_laying_acceleration
-
-# quadratic equation
-a = 0.5 * e_acceleration
-b = e_velocity
-c = e_current - e_final
-d = b**2 - 4*a*c
-
-# units: minutes
-t = (-b + math.sqrt(d)) / (2 * a)
+t = myfarm.time_to_eggs(e_final)
 print('target reached in', farm.format_time(t))
 
 new_farm2 = myfarm.future(t)
