@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import math
 import numbers
 
@@ -40,7 +42,7 @@ def parse_value(valstr):
         return None
     if isinstance(valstr, numbers.Number):
         return valstr
-    if valstr[-1].isnumeric():
+    if valstr[-1].isdigit():
         return int(valstr)
     if valstr.endswith('M'):
         exponent = 6
