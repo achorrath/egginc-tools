@@ -35,13 +35,6 @@ egg_laying_rate = '140.820B'
 # units: chickens / minute / hab
 int_hatchery_rate = 6440
 
-# habs
-habs = 4
-
-# units: dimensionless
-internal_hatchery_calm = 3
-
-
 
 ### Values at completion time
 print('Stats at completion time')
@@ -116,4 +109,4 @@ if c_final > hab_max_capacity:
     # units: dollars
     v_best = (10 * myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate) * myfarm.value_scalar
     print('         best possible farm value:', farm.format_value(v_best))
-    
+
