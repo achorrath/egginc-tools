@@ -236,3 +236,13 @@ class Farm(object):
         t = (-b + math.sqrt(d)) / (2 * a)
         return t
 
+    def time_to_max_chickens(self):
+        t = self.time_to_chickens(self.max_capacity)
+        return t
+
+    def time_to_value(self, target):
+        v_final = parse_value(target)
+        c_final = (v_final / self.value_scalar - (self.max_capacity + 12000 * self.int_hatchery_rate))/9
+        t = self.time_to_chickens(c_final)
+        return t
+

@@ -60,7 +60,6 @@ print()
 ### Values at chicken target
 print('Stats at chicken target')
 
-
 # units: minutes
 t = myfarm.time_to_chickens(target_chickens)
 print('target reached in', farm.format_time(t))
@@ -87,20 +86,14 @@ print()
 # farm population is the only part that changes over time
 print('Stats at farm value target')
 
-# units: dollars
-v_final = farm.parse_value(target_farm_value)
-
-# units: chickens
-c_final = (v_final / myfarm.value_scalar - (myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate))/9
-
 # units: minutes
-t = myfarm.time_to_chickens(c_final)
+t = myfarm.time_to_value(target_farm_value)
 print('target reached in', farm.format_time(t))
 new_farm4 = myfarm.future(t)
 new_farm4.report()
 
-if c_final > hab_max_capacity:
-    # units: dollars
-    v_best = (10 * myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate) * myfarm.value_scalar
-    print('         best possible farm value:', farm.format_value(v_best))
+if new_farm4.farm_population > hab_max_capacity:
+    t = myfarm.time_to_max_chickens()
+    new_farm5 = myfarm.future(t)
+    print('         best possible farm value:', farm.format_value(new_farm5.farm_value))
 
