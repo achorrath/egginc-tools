@@ -208,6 +208,15 @@ class Farm(object):
         if self.farm_value is not None:
             print('farm value:', format_value(self.farm_value))
 
+    def time_to_chickens(self, target):
+        # solve for t
+        # c_final = c_current + c_velocity * t
+        c_final = parse_value(target)
+        c_current = self.farm_population
+        c_velocity = self.chicken_hatching_rate
+        t = (c_final - c_current) / c_velocity
+        return t
+
     def time_to_eggs(self, target):
         # solve for t
         # e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t

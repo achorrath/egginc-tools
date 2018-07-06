@@ -58,17 +58,11 @@ print()
 
 
 ### Values at chicken target
-# solve for t
-# c_final = c_current + c_velocity * t
 print('Stats at chicken target')
 
-# units: chickens
-c_final = farm.parse_value(target_chickens)
-c_current = myfarm.farm_population
-c_velocity = myfarm.chicken_hatching_rate
 
 # units: minutes
-t = (c_final - c_current) / c_velocity
+t = myfarm.time_to_chickens(target_chickens)
 print('target reached in', farm.format_time(t))
 
 new_farm3 = myfarm.future(t)
@@ -100,7 +94,7 @@ v_final = farm.parse_value(target_farm_value)
 c_final = (v_final / myfarm.value_scalar - (myfarm.max_capacity + 12000 * myfarm.int_hatchery_rate))/9
 
 # units: minutes
-t = (c_final - c_current) / c_velocity
+t = myfarm.time_to_chickens(c_final)
 print('target reached in', farm.format_time(t))
 new_farm4 = myfarm.future(t)
 new_farm4.report()
