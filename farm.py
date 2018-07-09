@@ -209,6 +209,11 @@ class Farm(object):
             print('farm value:', format_value(self.farm_value))
 
     def time_to_chickens(self, target):
+        if self.farm_population is None:
+            raise ValueError('farm population required')
+        if self.chicken_hatching_rate is None:
+            raise ValueError('int hatchery rate required')
+
         # solve for t
         # c_final = c_current + c_velocity * t
         c_final = parse_value(target)
@@ -218,6 +223,15 @@ class Farm(object):
         return t
 
     def time_to_eggs(self, target):
+        if self.eggs is None:
+            raise ValueError('eggs required')
+        if self.farm_population is None:
+            raise ValueError('farm population required')
+        if self.egg_laying_rate is None:
+            raise ValueError('egg laying rate required')
+        if self.int_hatchery_rate is None:
+            raise ValueError('int hatchery rate required')
+
         # solve for t
         # e_final = e_current + e_velocity * t + 0.5 * e_acceleration * t * t
         # 0.5 * e_acceleration * t * t + e_velocity * t + e_current - e_final = 0
@@ -237,10 +251,22 @@ class Farm(object):
         return t
 
     def time_to_max_chickens(self):
+        if self.max_capacity is None:
+            raise ValueError('max capacity required')
+
         t = self.time_to_chickens(self.max_capacity)
         return t
 
     def time_to_value(self, target):
+        if self.max_capacity is None:
+            raise ValueError('max capacity required')
+        if self.farm_value is None:
+            raise ValueError('farm value required')
+        if self.farm_population is None:
+            raise ValueError('farm population required')
+        if self.int_hatchery_rate is None:
+            raise ValueError('int hatchery rate required')
+
         v_final = parse_value(target)
         c_final = (v_final / self.value_scalar - (self.max_capacity + 12000 * self.int_hatchery_rate))/9
         t = self.time_to_chickens(c_final)
