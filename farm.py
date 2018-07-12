@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import math
 import numbers
+import json
 
 ### functions
 def parse_time(timestr):
@@ -145,13 +146,25 @@ def format_value(value):
     return'%.3f%s' % (mantissa, suffix)
 
 
+def load_farm_from_json_file(filename):
+    with open(filename) as fp:
+        json_data = json.load(fp)
+    kwargs = {}
+    for key in ['eggs', 'max_capacity', 'farm_value', 'farm_population',
+                'egg_laying_rate', 'int_hatchery_rate']:
+        if key in json_data:
+            kwargs[key] = json_data[key]
+
+    return Farm(**kwargs)
+
+
 class Farm(object):
     def __init__(self, eggs=None, max_capacity=None, farm_value=None,
                  farm_population=None, egg_laying_rate=None,
                  int_hatchery_rate=None):
         # From contract info screen
         self.eggs = parse_value(eggs)  # units: eggs
-        
+
         # From hen housing screen
         self.max_capacity = parse_value(max_capacity)  # units: chickens
         self.habs = 4  # units: habs
@@ -161,10 +174,10 @@ class Farm(object):
         self.farm_population = parse_value(farm_population)  # units: chickens
         self.egg_laying_rate = parse_value(egg_laying_rate)  # units: eggs / minute
         self.int_hatchery_rate = parse_value(int_hatchery_rate)  # units: chickens / hab / minute
-        
+
         # From epic research screen
         self.internal_hatchery_calm = 3  # units: dimensionless
-        
+
         # Intermediate values
         self.chicken_hatching_rate = None
         if self.int_hatchery_rate is not None:
